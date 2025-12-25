@@ -27,6 +27,10 @@ import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.component1
+import androidx.core.graphics.component2
+import androidx.core.graphics.component3
+import androidx.core.graphics.component4
 import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.toPath
@@ -35,7 +39,10 @@ import com.example.shapesleuth.data.Colors
 import com.example.shapesleuth.data.Patterns
 import com.example.shapesleuth.data.Shapes
 import com.example.shapesleuth.data.makeDeck
+import kotlin.math.PI
 import kotlin.random.Random
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun CardView(card: Card, modifier: Modifier = Modifier) {
@@ -84,22 +91,23 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                         size = Size(3 * size.width / 4, size.height)
                     )
 
-                    Shapes.Rainbow -> {
-                        //drawPath(brush=paint,
-//                        path = rainbowPolygon(size))
-                        drawArc(
+                    Shapes.Rainbow -> drawArc(
+                        brush = paint,
+                        startAngle = 0f,
+                        sweepAngle = -180f,
+                        useCenter = false,
+                        style = Stroke(width = size.minDimension * .4f),
+                        size = Size(size.width * .6f, size.height * .8f),
+                        topLeft = Offset(size.width * .2f, size.height * .4f)
+                    )
+
+                    Shapes.Spiral ->
+                        drawPath(
                             brush = paint,
-                            startAngle = 0f,
-                            sweepAngle = -180f,
-                            useCenter = false,
-                            style = Stroke(width =size.minDimension*.4f),
-                            size = Size(size.width*.6f, size.height*.8f),
-                            topLeft = Offset(size.width*.2f, size.height*.4f)
+                            path = spiralPath(size),
+                            style = Stroke(width = size.minDimension * .1f),
 
-                        )
-                    }
-
-                    else -> drawCircle(color = card.color.color)
+                            )
                 }
             }
         }
@@ -141,6 +149,35 @@ fun diamondVertices(size: Size) = floatArrayOf(
     size.width, size.height / 2,
     size.width / 2, size.height
 )
+
+fun spiralPath(size: Size): Path {
+    val segments = 60
+    val dr = size.minDimension * .5f / segments
+    val dTheta = PI.toFloat() * 5f / segments
+    return Path().apply {
+        moveTo(size.width / 2, size.height / 2)
+        (0..segments).forEach { i ->
+            lineTo(
+                size.width / 2 + i * dr * cos(i * dTheta),
+                size.height / 2 + i * dr * sin(i * dTheta)
+            )
+        }
+        //close()
+    }
+}
+
+fun spiralVertices(size: Size): FloatArray {
+    val segments = 25
+    val dr = size.minDimension * .6f / segments
+    val dTheta = 45f
+    return (0..segments).map { i ->
+        listOf(
+            size.width / 2 + i * dr * cos(i * dTheta),
+            size.height / 2 + i * dr * sin(i * dTheta)
+        )
+    }.flatten().toFloatArray()
+}
+
 
 //unused
 fun rainbowPolygon(size: Size): Path {
