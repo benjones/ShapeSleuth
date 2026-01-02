@@ -1,5 +1,9 @@
 package com.example.shapesleuth.composables
 
+import android.graphics.BitmapShader
+import android.graphics.RuntimeShader
+import android.graphics.Shader
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -18,27 +22,29 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PointMode.Companion.Polygon
+import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.component1
-import androidx.core.graphics.component2
-import androidx.core.graphics.component3
-import androidx.core.graphics.component4
+import androidx.core.graphics.drawable.toBitmap
 import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.toPath
+import com.example.shapesleuth.R
 import com.example.shapesleuth.data.Card
 import com.example.shapesleuth.data.Colors
 import com.example.shapesleuth.data.Patterns
 import com.example.shapesleuth.data.Shapes
 import com.example.shapesleuth.data.makeDeck
+import org.intellij.lang.annotations.Language
 import kotlin.math.PI
 import kotlin.random.Random
 import kotlin.math.cos
@@ -46,6 +52,7 @@ import kotlin.math.sin
 
 @Composable
 fun CardView(card: Card, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
     Card(
         modifier = modifier
             .fillMaxSize()
@@ -67,32 +74,49 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
 
                 contentDescription = "Card:${card}"
             ) {
-                val paint = SolidColor(card.color.color)
+
+                val brush = when(card.pattern){
+
+                    Patterns.Gradient -> {
+                        Brush.verticalGradient(
+                            Pair(0.0f, scaleColor(card.color.color, 1.5f)),
+                            Pair(1.0f, scaleColor(card.color.color, 0.1f))
+                        )
+
+                    }
+                    Patterns.Stars->{
+                        val id = R.drawable.stars
+                        val bitmap = AppCompatResources.getDrawable(context, id)!!.toBitmap().asImageBitmap()
+                        createBlackReplacementBrush(bitmap,card.color.color  )
+                    }
+
+                    else -> SolidColor(card.color.color)
+                }
                 when (card.shape) {
-                    Shapes.Square -> drawRect(paint)
-                    Shapes.Circle -> drawCircle(paint)
+                    Shapes.Square -> drawRect(brush)
+                    Shapes.Circle -> drawCircle(brush)
                     Shapes.Triangle -> drawPath(
-                        brush = paint,
+                        brush = brush,
                         path = RoundedPolygon(
                             vertices = triangleVertices(size)
                         ).toPath().asComposePath()
                     )
 
                     Shapes.Diamond -> drawPath(
-                        brush = paint,
+                        brush = brush,
                         path = RoundedPolygon(
                             vertices = diamondVertices(size)
                         ).toPath().asComposePath()
                     )
 
                     Shapes.Oval -> drawOval(
-                        brush = paint,
+                        brush = brush,
                         topLeft = Offset(size.width / 8, 0f),
                         size = Size(3 * size.width / 4, size.height)
                     )
 
                     Shapes.Rainbow -> drawArc(
-                        brush = paint,
+                        brush = brush,
                         startAngle = 0f,
                         sweepAngle = -180f,
                         useCenter = false,
@@ -103,7 +127,7 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
 
                     Shapes.Spiral ->
                         drawPath(
-                            brush = paint,
+                            brush = brush,
                             path = spiralPath(size),
                             style = Stroke(width = size.minDimension * .1f),
 
@@ -114,6 +138,12 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
     }
 }
 
+fun scaleColor(color: Color, scale: Float): Color {
+    return Color(color.red*scale,
+        color.green*scale,
+        color.blue*scale,
+        alpha = 1.0f)
+}
 
 @Preview
 @Composable
@@ -129,10 +159,10 @@ fun DeckPreview() {
 
     LazyVerticalGrid(
         modifier = Modifier.fillMaxSize(),
-        columns = GridCells.Fixed(3)
+        columns = GridCells.Fixed(4)
     ) {
         items(deck) { card ->
-            CardView(card, modifier = Modifier.height(128.dp))
+            CardView(card, modifier = Modifier.height(96.dp))
         }
     }
 }
@@ -203,4 +233,31 @@ fun rainbowPolygon(size: Size): Path {
 
         )
     ).toPath().asComposePath()
+}
+
+@Language("AGSL")
+val BLACK_REPLACEMENT_SHADER_SRC = """
+    uniform shader image;
+    uniform half4 color;
+
+    half4 main(vec2 fragCoord) {
+        half4 texColor = image.eval(fragCoord);
+        // Use a small threshold to check for black, to avoid precision issues
+        if (texColor.r < 0.01 && texColor.g < 0.01 && texColor.b < 0.01) {
+            return half4(color.rgb, texColor.a);
+        }
+        return texColor;
+    }
+""".trimIndent()
+
+fun createBlackReplacementBrush(image: ImageBitmap, color: Color): ShaderBrush {
+    val shader = RuntimeShader(BLACK_REPLACEMENT_SHADER_SRC)
+    val bitmapShader = BitmapShader(
+        image.asAndroidBitmap(),
+        Shader.TileMode.CLAMP,
+        Shader.TileMode.CLAMP
+    )
+    shader.setInputShader("image", bitmapShader)
+    shader.setFloatUniform("color", color.red, color.green, color.blue, color.alpha)
+    return ShaderBrush(shader)
 }
