@@ -2,12 +2,12 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="400"
-   height="400"
-   viewBox="0 0 105.83333 105.83333"
+   width="72.642662"
+   height="69.860039"
+   viewBox="0 0 19.220037 18.483801"
    version="1.1"
    id="svg1"
-   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
    sodipodi:docname="stars.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -24,12 +24,12 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="1.3610403"
-     inkscape:cx="177.43781"
-     inkscape:cy="209.03129"
+     inkscape:cx="99.5562"
+     inkscape:cy="172.29468"
      inkscape:window-width="1512"
      inkscape:window-height="900"
-     inkscape:window-x="3200"
-     inkscape:window-y="44"
+     inkscape:window-x="223"
+     inkscape:window-y="39"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1" />
   <defs
@@ -37,17 +37,18 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(-1.1687717,-3.5032789)">
     <path
        sodipodi:type="star"
-       style="fill:#000000;stroke:none;stroke-width:0.264583;stroke-linecap:round;fill-opacity:1"
+       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-linecap:round"
        id="path1"
        inkscape:flatsided="false"
        sodipodi:sides="5"
        sodipodi:cx="10.886281"
        sodipodi:cy="13.607851"
        sodipodi:r1="10.110558"
-       sodipodi:r2="5.0552792"
+       sodipodi:r2="5.0552793"
        sodipodi:arg1="0.90806682"
        sodipodi:arg2="1.5363853"
        inkscape:rounded="0"

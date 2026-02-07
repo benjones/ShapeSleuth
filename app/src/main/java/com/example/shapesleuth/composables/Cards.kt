@@ -241,7 +241,8 @@ val BLACK_REPLACEMENT_SHADER_SRC = """
     uniform half4 color;
 
     half4 main(vec2 fragCoord) {
-        half4 texColor = image.eval(fragCoord);
+        float scale = 5.0;
+        half4 texColor = image.eval(scale*fragCoord);
         // Use a small threshold to check for black, to avoid precision issues
         if (texColor.r < 0.01 && texColor.g < 0.01 && texColor.b < 0.01) {
             return half4(color.rgb, texColor.a);
@@ -254,9 +255,10 @@ fun createBlackReplacementBrush(image: ImageBitmap, color: Color): ShaderBrush {
     val shader = RuntimeShader(BLACK_REPLACEMENT_SHADER_SRC)
     val bitmapShader = BitmapShader(
         image.asAndroidBitmap(),
-        Shader.TileMode.CLAMP,
-        Shader.TileMode.CLAMP
+        Shader.TileMode.REPEAT,
+        Shader.TileMode.REPEAT
     )
+
     shader.setInputShader("image", bitmapShader)
     shader.setFloatUniform("color", color.red, color.green, color.blue, color.alpha)
     return ShaderBrush(shader)
