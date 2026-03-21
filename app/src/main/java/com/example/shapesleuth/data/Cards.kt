@@ -14,13 +14,13 @@ enum class Shapes {
 }
 
 enum class Colors(val color: Color) {
-    Red(Color.Red),
-    Orange(Color(0xffff9900)),
-    Yellow(Color.Yellow),
-    Green(Color.Green),
-    Blue(Color.Blue),
-    Purple(Color(0xff9900ff)),
-    Brown(Color(0xFF996633))
+    Red(Color(0xFFEF5350)),
+    Orange(Color(0xFFFF9800)),
+    Yellow(Color(0xFFFDD835)),
+    Green(Color(0xFF66BB6A)),
+    Blue(Color(0xFF42A5F5)),
+    Purple(Color(0xFFAB47BC)),
+    Brown(Color(0xFF8D6E63))
 }
 
 enum class Patterns {

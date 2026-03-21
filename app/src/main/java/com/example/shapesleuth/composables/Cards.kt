@@ -93,7 +93,7 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                             bitmap,
                             listOf(Color.Black),
                             listOf(card.color.color),
-                            scale = 1.5f
+                            scale = 800.0f/size.width
                         )
                     }
 
@@ -272,7 +272,7 @@ fun createColorReplacementBrush(
                 return half4(targetColors[i].rgb, 1.0);
             }
         }
-        return half4(1, 1, 0, 1);
+        return half4(0, 0, 0, 0.4);
     }
 """.trimIndent()
 
