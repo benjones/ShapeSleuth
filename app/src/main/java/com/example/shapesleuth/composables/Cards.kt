@@ -92,7 +92,8 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                         createColorReplacementBrush(
                             bitmap,
                             listOf(Color.Black),
-                            listOf(card.color.color)
+                            listOf(card.color.color),
+                            scale = 1.5f
                         )
                     }
 
@@ -247,7 +248,8 @@ fun rainbowPolygon(size: Size): Path {
 fun createColorReplacementBrush(
     image: ImageBitmap,
     sourceColors: List<Color>,
-    targetColors: List<Color>
+    targetColors: List<Color>,
+    scale: Float = 3.0f
 ): ShaderBrush {
     val maxReplacementColors = 10
 
@@ -257,27 +259,20 @@ fun createColorReplacementBrush(
     uniform half4[10] sourceColors; //must be maxReplacementColors.  
     uniform half4[10] targetColors; //TODO make this use that variable somehow
     uniform int numReplacementColors;
+    uniform float scale;
 
     half4 main(vec2 fragCoord) {
-        float scale = 3.0;
-        half4 texColor = image.eval(scale*fragCoord);
-        //return half4(texColor.rgb,1);
+        half4 texColor = image.eval(scale * fragCoord);
         
-        // Use a small threshold to check for black, to avoid precision issues
         for(int i = 0; i < 10; i++){
             if(i >= numReplacementColors){
                 break; 
             }
-            //return half4(texColor.rgb - sourceColors[i].rgb, 1.0);
             if(length(texColor.rgb - sourceColors[i].rgb) < .01){
-            //if(texColor.r < .01 && texColor.g < .01 && texColor.b < .01){
-                //return half4(1,0,1, 1.0);
                 return half4(targetColors[i].rgb, 1.0);
-                //return half4(targetColors[i].rgb, 1.0);
             }
         }
-        return half4(1, 1, 0, 1);//texColor;*/
-        
+        return half4(1, 1, 0, 1);
     }
 """.trimIndent()
 
@@ -301,11 +296,9 @@ fun createColorReplacementBrush(
     targetColors.flatMap { color -> listOf(color.red, color.green, color.blue, 1.0f) }
         .toFloatArray().copyInto(targetUniform)
 
-    Log.d("sourceUniform", "${sourceUniform.asList()}")
-    Log.d("targetUniform", "${targetUniform.asList()}")
-
     shader.setFloatUniform("sourceColors", sourceUniform)
     shader.setFloatUniform("targetColors", targetUniform)
-    shader.setIntUniform("numReplacementColors", 1)
+    shader.setIntUniform("numReplacementColors", sourceColors.size)
+    shader.setFloatUniform("scale", scale)
     return ShaderBrush(shader)
 }
