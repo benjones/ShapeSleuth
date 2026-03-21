@@ -3,6 +3,7 @@ package com.example.shapesleuth.composables
 import android.graphics.BitmapShader
 import android.graphics.RuntimeShader
 import android.graphics.Shader
+import android.util.Log
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +24,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.SolidColor
@@ -75,7 +75,7 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                 contentDescription = "Card:${card}"
             ) {
 
-                val brush = when(card.pattern){
+                val brush = when (card.pattern) {
 
                     Patterns.Gradient -> {
                         Brush.verticalGradient(
@@ -84,10 +84,16 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                         )
 
                     }
-                    Patterns.Stars->{
+
+                    Patterns.Stars -> {
                         val id = R.drawable.stars
-                        val bitmap = AppCompatResources.getDrawable(context, id)!!.toBitmap().asImageBitmap()
-                        createBlackReplacementBrush(bitmap,card.color.color  )
+                        val bitmap =
+                            AppCompatResources.getDrawable(context, id)!!.toBitmap().asImageBitmap()
+                        createColorReplacementBrush(
+                            bitmap,
+                            listOf(Color.Black),
+                            listOf(card.color.color)
+                        )
                     }
 
                     else -> SolidColor(card.color.color)
@@ -139,16 +145,18 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
 }
 
 fun scaleColor(color: Color, scale: Float): Color {
-    return Color(color.red*scale,
-        color.green*scale,
-        color.blue*scale,
-        alpha = 1.0f)
+    return Color(
+        color.red * scale,
+        color.green * scale,
+        color.blue * scale,
+        alpha = 1.0f
+    )
 }
 
 @Preview
 @Composable
 fun CardPreview() {
-    CardView(Card(Shapes.Triangle, Colors.Blue, Patterns.PolkaDot))
+    CardView(Card(Shapes.Triangle, Colors.Blue, Patterns.Stars))
 }
 
 @Preview
@@ -235,31 +243,69 @@ fun rainbowPolygon(size: Size): Path {
     ).toPath().asComposePath()
 }
 
-@Language("AGSL")
-val BLACK_REPLACEMENT_SHADER_SRC = """
+
+fun createColorReplacementBrush(
+    image: ImageBitmap,
+    sourceColors: List<Color>,
+    targetColors: List<Color>
+): ShaderBrush {
+    val maxReplacementColors = 10
+
+    @Language("AGSL")
+    val Color_REPLACEMENT_SHADER_SRC = """
     uniform shader image;
-    uniform half4 color;
+    uniform half4[10] sourceColors; //must be maxReplacementColors.  
+    uniform half4[10] targetColors; //TODO make this use that variable somehow
+    uniform int numReplacementColors;
 
     half4 main(vec2 fragCoord) {
-        float scale = 5.0;
+        float scale = 3.0;
         half4 texColor = image.eval(scale*fragCoord);
+        //return half4(texColor.rgb,1);
+        
         // Use a small threshold to check for black, to avoid precision issues
-        if (texColor.r < 0.01 && texColor.g < 0.01 && texColor.b < 0.01) {
-            return half4(color.rgb, texColor.a);
+        for(int i = 0; i < 10; i++){
+            if(i >= numReplacementColors){
+                break; 
+            }
+            //return half4(texColor.rgb - sourceColors[i].rgb, 1.0);
+            if(length(texColor.rgb - sourceColors[i].rgb) < .01){
+            //if(texColor.r < .01 && texColor.g < .01 && texColor.b < .01){
+                //return half4(1,0,1, 1.0);
+                return half4(targetColors[i].rgb, 1.0);
+                //return half4(targetColors[i].rgb, 1.0);
+            }
         }
-        return texColor;
+        return half4(1, 1, 0, 1);//texColor;*/
+        
     }
 """.trimIndent()
 
-fun createBlackReplacementBrush(image: ImageBitmap, color: Color): ShaderBrush {
-    val shader = RuntimeShader(BLACK_REPLACEMENT_SHADER_SRC)
+    val shader = RuntimeShader(Color_REPLACEMENT_SHADER_SRC)
     val bitmapShader = BitmapShader(
         image.asAndroidBitmap(),
         Shader.TileMode.REPEAT,
         Shader.TileMode.REPEAT
     )
 
+    if (sourceColors.size != targetColors.size || sourceColors.size > maxReplacementColors) {
+        throw RuntimeException("source and target color mismatch, or too many of them")
+    }
     shader.setInputShader("image", bitmapShader)
-    shader.setFloatUniform("color", color.red, color.green, color.blue, color.alpha)
+
+    val sourceUniform = FloatArray(4 * maxReplacementColors)
+    sourceColors.flatMap { color -> listOf(color.red, color.green, color.blue, 1.0f) }
+        .toFloatArray().copyInto(sourceUniform)
+
+    val targetUniform = FloatArray(4 * maxReplacementColors)
+    targetColors.flatMap { color -> listOf(color.red, color.green, color.blue, 1.0f) }
+        .toFloatArray().copyInto(targetUniform)
+
+    Log.d("sourceUniform", "${sourceUniform.asList()}")
+    Log.d("targetUniform", "${targetUniform.asList()}")
+
+    shader.setFloatUniform("sourceColors", sourceUniform)
+    shader.setFloatUniform("targetColors", targetUniform)
+    shader.setIntUniform("numReplacementColors", 1)
     return ShaderBrush(shader)
 }

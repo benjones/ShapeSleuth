@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="1.3610403"
-     inkscape:cx="99.5562"
-     inkscape:cy="172.29468"
+     inkscape:zoom="4.9282989"
+     inkscape:cx="25.97245"
+     inkscape:cy="42.306687"
      inkscape:window-width="1512"
      inkscape:window-height="900"
      inkscape:window-x="223"
@@ -37,8 +37,14 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(-1.1687717,-3.5032789)">
+     id="layer1">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke-width:0.256668;stroke-linecap:round"
+       id="rect1"
+       width="19.380842"
+       height="18.575546"
+       x="0"
+       y="-1.3877788e-17" />
     <path
        sodipodi:type="star"
        style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-linecap:round"
@@ -55,6 +61,7 @@
        inkscape:randomized="0"
        d="M 17.107012,21.578163 11.060204,18.660138 5.2283755,21.98708 6.1350162,15.334504 1.1687717,10.816187 7.7759148,9.6226948 10.538436,3.5032789 l 3.176798,5.9149571 6.673576,0.73631 -4.643774,4.849137 z"
        inkscape:transform-center-x="0.10749018"
-       inkscape:transform-center-y="-0.8626716" />
+       inkscape:transform-center-y="-0.8626716"
+       transform="translate(-1.1687717,-3.5032789)" />
   </g>
 </svg>
