@@ -31,9 +31,11 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
 import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.RoundedPolygon
@@ -89,11 +91,19 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                         val id = R.drawable.stars
                         val bitmap =
                             AppCompatResources.getDrawable(context, id)!!.toBitmap().asImageBitmap()
+
+                        val hsv = FloatArray(3)
+                        android.graphics.Color.colorToHSV(card.color.color.toArgb(), hsv)
+                        hsv[1] = hsv[1] * 0.2f // desaturate
+                        hsv[2] = 0.95f // lighten
+                        val fallback = Color(android.graphics.Color.HSVToColor(hsv))
+
                         createColorReplacementBrush(
                             bitmap,
                             listOf(Color.Black),
                             listOf(card.color.color),
-                            scale = 800.0f/size.width
+                            fallbackColor = fallback,
+                            scale = 800.0f / size.width
                         )
                     }
 
@@ -249,6 +259,7 @@ fun createColorReplacementBrush(
     image: ImageBitmap,
     sourceColors: List<Color>,
     targetColors: List<Color>,
+    fallbackColor: Color = Color.White,
     scale: Float = 3.0f
 ): ShaderBrush {
     val maxReplacementColors = 10
@@ -258,12 +269,15 @@ fun createColorReplacementBrush(
     uniform shader image;
     uniform half4[10] sourceColors; //must be maxReplacementColors.  
     uniform half4[10] targetColors; //TODO make this use that variable somehow
+    uniform half4 fallbackColor; // color to use for transparent parts
     uniform int numReplacementColors;
     uniform float scale;
 
     half4 main(vec2 fragCoord) {
         half4 texColor = image.eval(scale * fragCoord);
-        
+        if(texColor.a < .5){
+            return fallbackColor;
+        }
         for(int i = 0; i < 10; i++){
             if(i >= numReplacementColors){
                 break; 
@@ -272,7 +286,8 @@ fun createColorReplacementBrush(
                 return half4(targetColors[i].rgb, 1.0);
             }
         }
-        return half4(0, 0, 0, 0.4);
+        //TODO fix: makes orange background look yellow
+        return half4(targetColors[0].rgb, 0.5);
     }
 """.trimIndent()
 
@@ -296,8 +311,11 @@ fun createColorReplacementBrush(
     targetColors.flatMap { color -> listOf(color.red, color.green, color.blue, 1.0f) }
         .toFloatArray().copyInto(targetUniform)
 
+    val fallbackUniform = floatArrayOf(fallbackColor.red, fallbackColor.green, fallbackColor.blue, fallbackColor.alpha)
+
     shader.setFloatUniform("sourceColors", sourceUniform)
     shader.setFloatUniform("targetColors", targetUniform)
+    shader.setFloatUniform("fallbackColor", fallbackUniform)
     shader.setIntUniform("numReplacementColors", sourceColors.size)
     shader.setFloatUniform("scale", scale)
     return ShaderBrush(shader)

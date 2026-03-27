@@ -1,6 +1,7 @@
 package com.example.shapesleuth.data
 
 import androidx.compose.ui.graphics.Color
+import com.example.shapesleuth.ui.theme.*
 import kotlin.random.Random
 
 enum class Shapes {
@@ -14,13 +15,13 @@ enum class Shapes {
 }
 
 enum class Colors(val color: Color) {
-    Red(Color(0xFFEF5350)),
-    Orange(Color(0xFFFF9800)),
-    Yellow(Color(0xFFFDD835)),
-    Green(Color(0xFF66BB6A)),
-    Blue(Color(0xFF42A5F5)),
-    Purple(Color(0xFFAB47BC)),
-    Brown(Color(0xFF8D6E63))
+    Red(Red400),
+    Orange(Orange500),
+    Yellow(Yellow600),
+    Green(Green400),
+    Blue(Blue400),
+    Purple(Purple400),
+    Brown(Brown400)
 }
 
 enum class Patterns {
