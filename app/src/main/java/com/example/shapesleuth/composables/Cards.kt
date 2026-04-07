@@ -1,10 +1,13 @@
 package com.example.shapesleuth.composables
 
+import android.content.Context
 import android.graphics.BitmapShader
 import android.graphics.RuntimeShader
 import android.graphics.Shader
 import android.util.Log
+import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.animation.defaultDecayAnimationSpec
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -30,6 +33,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -88,22 +92,24 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                     }
 
                     Patterns.Stars -> {
-                        val id = R.drawable.stars
-                        val bitmap =
-                            AppCompatResources.getDrawable(context, id)!!.toBitmap().asImageBitmap()
+                        createPatternBrush(
+                            context = context,
+                            resId = R.drawable.stars,
+                            sourceColors = listOf(Color.Black),
+                            targetColors = listOf(card.color.color),
+                            fallbackColor = lightenColor(card.color.color),
+                            scaleNumerator = 800.0f
+                        )
+                    }
 
-                        val hsv = FloatArray(3)
-                        android.graphics.Color.colorToHSV(card.color.color.toArgb(), hsv)
-                        hsv[1] = hsv[1] * 0.2f // desaturate
-                        hsv[2] = 0.95f // lighten
-                        val fallback = Color(android.graphics.Color.HSVToColor(hsv))
-
-                        createColorReplacementBrush(
-                            bitmap,
-                            listOf(Color.Black),
-                            listOf(card.color.color),
-                            fallbackColor = fallback,
-                            scale = 800.0f / size.width
+                    Patterns.Plaid -> {
+                        createPatternBrush(
+                            context = context,
+                            resId = R.drawable.plaid,
+                            sourceColors = listOf(Color.Red, Color.Green),
+                            targetColors = listOf(lightenColor(card.color.color, 0.95f), card.color.color),
+                            fallbackColor = lightenColor(card.color.color, 0.75f),
+                            scaleNumerator = 1100.0f
                         )
                     }
 
@@ -155,6 +161,24 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
     }
 }
 
+fun DrawScope.createPatternBrush(
+    context: Context,
+    @DrawableRes resId: Int,
+    sourceColors: List<Color>,
+    targetColors: List<Color>,
+    fallbackColor: Color,
+    scaleNumerator: Float
+): ShaderBrush {
+    val bitmap = AppCompatResources.getDrawable(context, resId)!!.toBitmap().asImageBitmap()
+    return createColorReplacementBrush(
+        image = bitmap,
+        sourceColors = sourceColors,
+        targetColors = targetColors,
+        fallbackColor = fallbackColor,
+        scale = scaleNumerator / size.width
+    )
+}
+
 fun scaleColor(color: Color, scale: Float): Color {
     return Color(
         color.red * scale,
@@ -162,6 +186,14 @@ fun scaleColor(color: Color, scale: Float): Color {
         color.blue * scale,
         alpha = 1.0f
     )
+}
+
+fun lightenColor(color: Color, amount: Float = 0.95f): Color {
+    val hsv = FloatArray(3)
+    android.graphics.Color.colorToHSV(color.toArgb(), hsv)
+    hsv[1] = hsv[1] * 0.2f // desaturate
+    hsv[2] = amount // lighten
+    return Color(android.graphics.Color.HSVToColor(hsv))
 }
 
 @Preview
