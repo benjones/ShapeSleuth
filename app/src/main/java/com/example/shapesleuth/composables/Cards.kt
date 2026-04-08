@@ -98,7 +98,7 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                             sourceColors = listOf(Color.Black),
                             targetColors = listOf(card.color.color),
                             fallbackColor = lightenColor(card.color.color),
-                            scaleNumerator = 800.0f
+                            scale = 800.0f / size.width
                         )
                     }
 
@@ -109,7 +109,7 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                             sourceColors = listOf(Color.Red, Color.Green),
                             targetColors = listOf(lightenColor(card.color.color, 0.95f), card.color.color),
                             fallbackColor = lightenColor(card.color.color, 0.75f),
-                            scaleNumerator = 1100.0f
+                            scale = 1100.0f / size.width
                         )
                     }
 
@@ -152,7 +152,7 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                         drawPath(
                             brush = brush,
                             path = spiralPath(size),
-                            style = Stroke(width = size.minDimension * .1f),
+                            style = Stroke(width = size.minDimension * .18f),
 
                             )
                 }
@@ -161,22 +161,72 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
     }
 }
 
-fun DrawScope.createPatternBrush(
+fun createPatternBrush(
     context: Context,
     @DrawableRes resId: Int,
     sourceColors: List<Color>,
     targetColors: List<Color>,
     fallbackColor: Color,
-    scaleNumerator: Float
+    scale: Float
 ): ShaderBrush {
-    val bitmap = AppCompatResources.getDrawable(context, resId)!!.toBitmap().asImageBitmap()
-    return createColorReplacementBrush(
-        image = bitmap,
-        sourceColors = sourceColors,
-        targetColors = targetColors,
-        fallbackColor = fallbackColor,
-        scale = scaleNumerator / size.width
+    val image = AppCompatResources.getDrawable(context, resId)!!.toBitmap().asImageBitmap()
+    val maxReplacementColors = 10
+
+    @Language("AGSL")
+    val colorReplacementShaderSrc = """
+    uniform shader image;
+    uniform half4[10] sourceColors; //must be maxReplacementColors.  
+    uniform half4[10] targetColors; //TODO make this use that variable somehow
+    uniform half4 fallbackColor; // color to use for transparent parts
+    uniform int numReplacementColors;
+    uniform float scale;
+
+    half4 main(vec2 fragCoord) {
+        half4 texColor = image.eval(scale * fragCoord);
+        if(texColor.a < .5){
+            return fallbackColor;
+        }
+        for(int i = 0; i < 10; i++){
+            if(i >= numReplacementColors){
+                break; 
+            }
+            if(length(texColor.rgb - sourceColors[i].rgb) < .01){
+                return half4(targetColors[i].rgb, 1.0);
+            }
+        }
+        //TODO fix: makes orange background look yellow
+        return half4(targetColors[0].rgb, 0.5);
+    }
+""".trimIndent()
+
+    val shader = RuntimeShader(colorReplacementShaderSrc)
+    val bitmapShader = BitmapShader(
+        image.asAndroidBitmap(),
+        Shader.TileMode.REPEAT,
+        Shader.TileMode.REPEAT
     )
+
+    if (sourceColors.size != targetColors.size || sourceColors.size > maxReplacementColors) {
+        throw RuntimeException("source and target color mismatch, or too many of them")
+    }
+    shader.setInputShader("image", bitmapShader)
+
+    val sourceUniform = FloatArray(4 * maxReplacementColors)
+    sourceColors.flatMap { color -> listOf(color.red, color.green, color.blue, 1.0f) }
+        .toFloatArray().copyInto(sourceUniform)
+
+    val targetUniform = FloatArray(4 * maxReplacementColors)
+    targetColors.flatMap { color -> listOf(color.red, color.green, color.blue, 1.0f) }
+        .toFloatArray().copyInto(targetUniform)
+
+    val fallbackUniform = floatArrayOf(fallbackColor.red, fallbackColor.green, fallbackColor.blue, fallbackColor.alpha)
+
+    shader.setFloatUniform("sourceColors", sourceUniform)
+    shader.setFloatUniform("targetColors", targetUniform)
+    shader.setFloatUniform("fallbackColor", fallbackUniform)
+    shader.setIntUniform("numReplacementColors", sourceColors.size)
+    shader.setFloatUniform("scale", scale)
+    return ShaderBrush(shader)
 }
 
 fun scaleColor(color: Color, scale: Float): Color {
@@ -199,7 +249,7 @@ fun lightenColor(color: Color, amount: Float = 0.95f): Color {
 @Preview
 @Composable
 fun CardPreview() {
-    CardView(Card(Shapes.Triangle, Colors.Blue, Patterns.Stars))
+    CardView(Card(Shapes.Spiral, Colors.Blue, Patterns.Stars))
 }
 
 @Preview
@@ -232,9 +282,9 @@ fun diamondVertices(size: Size) = floatArrayOf(
 )
 
 fun spiralPath(size: Size): Path {
-    val segments = 60
+    val segments = 50
     val dr = size.minDimension * .5f / segments
-    val dTheta = PI.toFloat() * 5f / segments
+    val dTheta = PI.toFloat() * 3.5f / segments
     return Path().apply {
         moveTo(size.width / 2, size.height / 2)
         (0..segments).forEach { i ->
@@ -287,68 +337,3 @@ fun rainbowPolygon(size: Size): Path {
 }
 
 
-fun createColorReplacementBrush(
-    image: ImageBitmap,
-    sourceColors: List<Color>,
-    targetColors: List<Color>,
-    fallbackColor: Color = Color.White,
-    scale: Float = 3.0f
-): ShaderBrush {
-    val maxReplacementColors = 10
-
-    @Language("AGSL")
-    val Color_REPLACEMENT_SHADER_SRC = """
-    uniform shader image;
-    uniform half4[10] sourceColors; //must be maxReplacementColors.  
-    uniform half4[10] targetColors; //TODO make this use that variable somehow
-    uniform half4 fallbackColor; // color to use for transparent parts
-    uniform int numReplacementColors;
-    uniform float scale;
-
-    half4 main(vec2 fragCoord) {
-        half4 texColor = image.eval(scale * fragCoord);
-        if(texColor.a < .5){
-            return fallbackColor;
-        }
-        for(int i = 0; i < 10; i++){
-            if(i >= numReplacementColors){
-                break; 
-            }
-            if(length(texColor.rgb - sourceColors[i].rgb) < .01){
-                return half4(targetColors[i].rgb, 1.0);
-            }
-        }
-        //TODO fix: makes orange background look yellow
-        return half4(targetColors[0].rgb, 0.5);
-    }
-""".trimIndent()
-
-    val shader = RuntimeShader(Color_REPLACEMENT_SHADER_SRC)
-    val bitmapShader = BitmapShader(
-        image.asAndroidBitmap(),
-        Shader.TileMode.REPEAT,
-        Shader.TileMode.REPEAT
-    )
-
-    if (sourceColors.size != targetColors.size || sourceColors.size > maxReplacementColors) {
-        throw RuntimeException("source and target color mismatch, or too many of them")
-    }
-    shader.setInputShader("image", bitmapShader)
-
-    val sourceUniform = FloatArray(4 * maxReplacementColors)
-    sourceColors.flatMap { color -> listOf(color.red, color.green, color.blue, 1.0f) }
-        .toFloatArray().copyInto(sourceUniform)
-
-    val targetUniform = FloatArray(4 * maxReplacementColors)
-    targetColors.flatMap { color -> listOf(color.red, color.green, color.blue, 1.0f) }
-        .toFloatArray().copyInto(targetUniform)
-
-    val fallbackUniform = floatArrayOf(fallbackColor.red, fallbackColor.green, fallbackColor.blue, fallbackColor.alpha)
-
-    shader.setFloatUniform("sourceColors", sourceUniform)
-    shader.setFloatUniform("targetColors", targetUniform)
-    shader.setFloatUniform("fallbackColor", fallbackUniform)
-    shader.setIntUniform("numReplacementColors", sourceColors.size)
-    shader.setFloatUniform("scale", scale)
-    return ShaderBrush(shader)
-}

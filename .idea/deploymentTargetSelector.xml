@@ -10,6 +10,7 @@
       </SelectionState>
       <SelectionState runConfigName="DeckPreview">
         <option name="selectionMode" value="DROPDOWN" />
+        <DialogSelection />
       </SelectionState>
       <SelectionState runConfigName="CardPreview">
         <option name="selectionMode" value="DROPDOWN" />
