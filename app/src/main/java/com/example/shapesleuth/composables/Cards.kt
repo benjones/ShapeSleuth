@@ -123,6 +123,15 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                             scale = 1000.0f/size.width
                         )
 
+                    Patterns.Stripes ->
+                        createPatternBrush(
+                            context = context,
+                            resId = R.drawable.stripes,
+                            sourceColors = listOf(Color.Green),
+                            targetColors = listOf(card.color.color),
+                            fallbackColor = lightenColor(card.color.color),
+                            scale = 950.0f/size.width
+                        )
 
                     else -> SolidColor(card.color.color)
                 }

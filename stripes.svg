@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="400"
+   height="400"
+   viewBox="0 0 400 400"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   sodipodi:docname="stripes.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="true"
+     inkscape:zoom="1.245"
+     inkscape:cx="200.40161"
+     inkscape:cy="200"
+     inkscape:window-width="1447"
+     inkscape:window-height="933"
+     inkscape:window-x="1920"
+     inkscape:window-y="137"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g1"
+       transform="rotate(-45,200,200)">
+      <rect
+         style="fill:#00ff00;stroke-linecap:round"
+         id="rect1"
+         width="600"
+         height="40"
+         x="-100"
+         y="20" />
+      <rect
+         style="fill:#00ff00;stroke-linecap:round"
+         id="rect1-0"
+         width="600"
+         height="40"
+         x="-100"
+         y="-60" />
+      <rect
+         style="fill:#00ff00;stroke-linecap:round"
+         id="rect1-4"
+         width="600"
+         height="40"
+         x="-100"
+         y="100" />
+      <rect
+         style="fill:#00ff00;stroke-linecap:round"
+         id="rect1-4-0"
+         width="600"
+         height="40"
+         x="-100"
+         y="180" />
+      <rect
+         style="fill:#00ff00;stroke-linecap:round"
+         id="rect1-4-0-3"
+         width="600"
+         height="40"
+         x="-100"
+         y="260" />
+      <rect
+         style="fill:#00ff00;stroke-linecap:round"
+         id="rect1-4-0-3-5"
+         width="400"
+         height="40"
+         x="0"
+         y="340" />
+      <rect
+         style="fill:#00ff00;stroke-linecap:round"
+         id="rect1-4-0-3-5-0"
+         width="400"
+         height="40"
+         x="0"
+         y="420" />
+    </g>
+  </g>
+</svg>
