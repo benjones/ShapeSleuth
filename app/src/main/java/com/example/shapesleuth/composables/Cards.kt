@@ -91,7 +91,7 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
 
                     }
 
-                    Patterns.Stars -> {
+                    Patterns.Stars ->
                         createPatternBrush(
                             context = context,
                             resId = R.drawable.stars,
@@ -100,9 +100,9 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                             fallbackColor = lightenColor(card.color.color),
                             scale = 800.0f / size.width
                         )
-                    }
 
-                    Patterns.Plaid -> {
+
+                    Patterns.Plaid ->
                         createPatternBrush(
                             context = context,
                             resId = R.drawable.plaid,
@@ -111,7 +111,18 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                             fallbackColor = lightenColor(card.color.color, 0.75f),
                             scale = 1100.0f / size.width
                         )
-                    }
+
+
+                    Patterns.PolkaDot ->
+                        createPatternBrush(
+                            context = context,
+                            resId = R.drawable.polkadots,
+                            sourceColors = listOf(Color.Green),
+                            targetColors = listOf(card.color.color),
+                            fallbackColor = lightenColor(card.color.color),
+                            scale = 1000.0f/size.width
+                        )
+
 
                     else -> SolidColor(card.color.color)
                 }
