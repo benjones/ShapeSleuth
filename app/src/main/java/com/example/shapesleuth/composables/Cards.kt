@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
@@ -86,7 +87,7 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                     Patterns.Gradient -> {
                         Brush.verticalGradient(
                             Pair(0.0f, scaleColor(card.color.color, 1.5f)),
-                            Pair(1.0f, scaleColor(card.color.color, 0.1f))
+                            Pair(1.0f, lightenColor(card.color.color, 0.3f))
                         )
 
                     }
@@ -133,7 +134,17 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                             scale = 950.0f/size.width
                         )
 
-                    else -> SolidColor(card.color.color)
+                    Patterns.Waves ->
+                        createPatternBrush(
+                            context = context,
+                            resId = R.drawable.waves,
+                            sourceColors = listOf(Color.Black),
+                            targetColors = listOf(card.color.color),
+                            fallbackColor = lightenColor(card.color.color),
+                            scale = 3200.0f/size.width
+                        )
+
+                    Patterns.Solid -> SolidColor(card.color.color)
                 }
                 when (card.shape) {
                     Shapes.Square -> drawRect(brush)
@@ -172,7 +183,8 @@ fun CardView(card: Card, modifier: Modifier = Modifier) {
                         drawPath(
                             brush = brush,
                             path = spiralPath(size),
-                            style = Stroke(width = size.minDimension * .18f),
+                            style = Stroke(width = size.minDimension * .18f,
+                                cap = StrokeCap.Round),
 
                             )
                 }
