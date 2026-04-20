@@ -9,6 +9,7 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.animation.defaultDecayAnimationSpec
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -58,12 +59,14 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
-fun CardView(card: Card, modifier: Modifier = Modifier) {
+fun CardView(card: Card,
+             modifier: Modifier = Modifier,
+             onclick: ()->Unit = {}) {
     val context = LocalContext.current
     Card(
         modifier = modifier
-            .fillMaxSize()
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable { onclick() }
     ) {
         Row(
             modifier = Modifier

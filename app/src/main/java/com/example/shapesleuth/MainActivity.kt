@@ -9,8 +9,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.shapesleuth.composables.Game
+import com.example.shapesleuth.composables.GameScreen
+import com.example.shapesleuth.data.GameState
 import com.example.shapesleuth.ui.theme.ShapeSleuthTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,28 +24,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             ShapeSleuthTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    val gameState = remember { GameState() }
+                    GameScreen(gameState, Modifier.padding(innerPadding))
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ShapeSleuthTheme {
-        Greeting("Android")
-    }
-}
