@@ -18,3 +18,6 @@ val Green400 = Color(0xFF66BB6A)
 val Blue400 = Color(0xFF42A5F5)
 val Purple400 = Color(0xFFAB47BC)
 val Brown400 = Color(0xFF8D6E63)
+
+val LightSeafoam = Color(0xFFD1F2EB)
+val LightCoral = Color(0xFFFADBD8)
