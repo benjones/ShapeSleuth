@@ -97,16 +97,13 @@ fun GameScreen(gameState: GameState, modifier: Modifier = Modifier) {
                 .weight(1.0f)
                 .padding(8.dp)
         ) {
-            // Determine columns needed per side for weight distribution
-            val mCols = maxOf(1, (matches.size + maxRows - 1) / maxRows)
-            val nCols = maxOf(1, (nonMatches.size + maxRows - 1) / maxRows)
 
             BoardArea(
                 cards = matches,
                 backgroundColor = LightSeafoam,
                 alignment = Alignment.Start,
                 modifier = Modifier
-                    .weight(mCols.toFloat())
+                    .weight(1.0f)
                     .fillMaxHeight()
                     .padding(end = 4.dp)
             )
@@ -116,7 +113,7 @@ fun GameScreen(gameState: GameState, modifier: Modifier = Modifier) {
                 backgroundColor = LightCoral,
                 alignment = Alignment.End,
                 modifier = Modifier
-                    .weight(nCols.toFloat())
+                    .weight(1.0f)
                     .fillMaxHeight()
                     .padding(start = 4.dp)
             )

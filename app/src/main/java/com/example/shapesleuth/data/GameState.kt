@@ -37,7 +37,9 @@ class GameState(random: Random = Random.Default) {
         } else {
             _nonMatches.add(card)
         }
-        _hand.add(_deck.removeLast())
+        if(_deck.isNotEmpty()) {
+            _hand.add(_deck.removeLast())
+        }
     }
 
 }
