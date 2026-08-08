@@ -26,10 +26,16 @@ import androidx.compose.ui.unit.toOffset
 import com.example.shapesleuth.data.Card
 import com.example.shapesleuth.data.Colors
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
+
+private sealed class DragState {
+    data class ColorDrag(val offset: Offset) : DragState()
+    object NotDragging : DragState()
+}
 
 /*Guess a card
 * Imagining it as a a virtual "sphere"
@@ -43,9 +49,11 @@ fun GuesserWidget(modifier: Modifier = Modifier,
                   onSelect: (Card)-> Unit){
     var selectedColorIndex by remember{ mutableIntStateOf(0) }
 
-    var draggingColor by remember { mutableStateOf(false)}
-    var mouseX by remember { mutableStateOf(0f)}
-    var mouseY by remember { mutableStateOf(0f)}
+    var dragState by remember { mutableStateOf<DragState>(DragState.NotDragging)}
+
+//    var draggingColor by remember { mutableStateOf(false)}
+//    var mouseX by remember { mutableStateOf(0f)}
+//    var mouseY by remember { mutableStateOf(0f)}
 
     var colorSelectionWidth = 5f
 
@@ -72,31 +80,48 @@ fun GuesserWidget(modifier: Modifier = Modifier,
                 )
             }
 
-            if(draggingColor){
-                drawCircle(
-                    brush=SolidColor(Color.Black),
-                    center = size.center, //Offset(mouseX, mouseY),
-                    radius = size.minDimension * annulusWidthScale / 2 + colorSelectionWidth/2,
-                    style = Stroke(colorSelectionWidth)
-                )
+            when (val currentDragState = dragState) {
+
+                is DragState.ColorDrag -> {
+                    val fromCenter = currentDragState.offset - size.center
+                    val angle = atan2(fromCenter.y, fromCenter.x)
+
+
+                    drawCircle(
+                        brush = SolidColor(Color.Black),
+                        center = Offset(
+                            (size.center.x + size.minDimension * annulusCenterScale * cos(angle)).toFloat(),
+                            (size.center.y + size.minDimension * annulusCenterScale * sin(angle)).toFloat()),
+                        radius = size.minDimension * annulusWidthScale / 2 + colorSelectionWidth / 2,
+                        style = Stroke(colorSelectionWidth)
+                    )
+                }
+                else -> {}
             }
 
         })
         .pointerInput(Unit) {
             detectDragGestures(
-                onDragStart = {offset -> //check if it's in the annulus
+                onDragStart = { offset -> //check if it's in the annulus
                     Log.d("drag start", "offset: $offset")
                     val center = size.center.toOffset()
                     val len = (offset - center).getDistance()
                     val minDim = min(size.width, size.height)
-                    val dist = abs(len - minDim*annulusCenterScale)
-                    if(dist  <= minDim*annulusWidthScale){
-                        draggingColor = true
+                    val dist = abs(len - minDim * annulusCenterScale)
+                    if (dist <= minDim * annulusWidthScale) {
+                        dragState = DragState.ColorDrag(offset)
                     }
                 },
-                onDrag = { pointerInputChange, dragAmount -> },
-                onDragEnd = { draggingColor = false},
-                onDragCancel = {draggingColor = false}
+                onDrag = { pointerInputChange, dragAmount ->
+                    when(val currentDragState = dragState){
+                        is DragState.ColorDrag -> {
+                            dragState = DragState.ColorDrag(pointerInputChange.position)
+                        }
+                        else ->{}
+                    }
+                },
+                onDragEnd = { dragState = DragState.NotDragging },
+                onDragCancel = { dragState = DragState.NotDragging }
             )
 
         }
