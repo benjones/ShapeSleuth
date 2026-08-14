@@ -19,16 +19,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.center
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toOffset
 import com.example.shapesleuth.data.Card
 import com.example.shapesleuth.data.Colors
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
+import kotlin.math.round
 import kotlin.math.sin
 
 
@@ -60,6 +64,12 @@ fun GuesserWidget(modifier: Modifier = Modifier,
     val annulusCenterScale = 1/2.5f
     val annulusWidthScale = 1/10f
 
+    fun offsetAtAngle(center: Offset, dim: Float, angle: Float) = Offset(
+        (center.x + dim * annulusCenterScale * cos(angle)).toFloat(),
+        (center.y + dim * annulusCenterScale * sin(angle)).toFloat()
+    )
+
+    //val textMeasurer = rememberTextMeasurer()
     Box(modifier
         //.background(Color.Black)
         .drawBehind({
@@ -69,13 +79,10 @@ fun GuesserWidget(modifier: Modifier = Modifier,
                 radius = size.minDimension * annulusCenterScale
             )
             Colors.entries.forEachIndexed { index, color ->
-                val angle = (2 * Math.PI * index) / Colors.entries.size
+                val angle = ((2 * Math.PI * index) / Colors.entries.size).toFloat()
                 drawCircle(
                     brush = SolidColor(color.color),
-                    center = Offset(
-                        (size.center.x + size.minDimension * annulusCenterScale * cos(angle)).toFloat(),
-                        (size.center.y + size.minDimension * annulusCenterScale * sin(angle)).toFloat()
-                    ),
+                    center = offsetAtAngle(size.center, size.minDimension, angle),
                     radius = size.minDimension * annulusWidthScale / 2
                 )
             }
@@ -86,16 +93,20 @@ fun GuesserWidget(modifier: Modifier = Modifier,
                     val fromCenter = currentDragState.offset - size.center
                     val angle = atan2(fromCenter.y, fromCenter.x)
 
+                    val approxIndex = round(Colors.entries.size*angle/(2* PI)).toInt()
+                    
+                    selectedColorIndex = if(approxIndex >= 0)  approxIndex else approxIndex + Colors.entries.size
 
                     drawCircle(
                         brush = SolidColor(Color.Black),
-                        center = Offset(
-                            (size.center.x + size.minDimension * annulusCenterScale * cos(angle)).toFloat(),
-                            (size.center.y + size.minDimension * annulusCenterScale * sin(angle)).toFloat()),
+                        center = offsetAtAngle(center, size.minDimension,
+                            (2*PI*selectedColorIndex/ Colors.entries.size).toFloat()),
                         radius = size.minDimension * annulusWidthScale / 2 + colorSelectionWidth / 2,
                         style = Stroke(colorSelectionWidth)
                     )
+
                 }
+
                 else -> {}
             }
 
@@ -113,11 +124,12 @@ fun GuesserWidget(modifier: Modifier = Modifier,
                     }
                 },
                 onDrag = { pointerInputChange, dragAmount ->
-                    when(val currentDragState = dragState){
+                    when (val currentDragState = dragState) {
                         is DragState.ColorDrag -> {
                             dragState = DragState.ColorDrag(pointerInputChange.position)
                         }
-                        else ->{}
+
+                        else -> {}
                     }
                 },
                 onDragEnd = { dragState = DragState.NotDragging },
